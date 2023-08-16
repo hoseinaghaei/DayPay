@@ -49,7 +49,7 @@ class Company(models.Model):
         max_length=150, unique=True, error_messages={
             "unique": "A user with that username already exists.",
         })
-    logo = models.ImageField()
+    logo = models.ImageField(upload_to='company/', height_field=100, width_field=100, null=True, blank=True)
     max_credit_limit = models.PositiveIntegerField()
 
     user = models.OneToOneField(Users, on_delete=models.CASCADE)
