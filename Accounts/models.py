@@ -34,7 +34,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
     EMAIL_FIELD = "email"
     USERNAME_FIELD = "phone_number"
-    REQUIRED_FIELDS = ["phone_number"]
+    REQUIRED_FIELDS = []
 
     @classmethod
     def normalize_phone_number(cls, phone_number):
