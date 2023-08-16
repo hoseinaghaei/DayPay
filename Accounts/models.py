@@ -36,6 +36,10 @@ class Users(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "phone_number"
     REQUIRED_FIELDS = []
 
+    class Meta:
+        verbose_name = 'Users'
+        verbose_name_plural = 'Users'
+
     @classmethod
     def normalize_phone_number(cls, phone_number):
         """
