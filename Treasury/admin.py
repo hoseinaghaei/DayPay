@@ -1,3 +1,18 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import *
+
+
+@admin.register(Gift)
+class GiftAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Wallet)
+class WalletAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(WalletTransaction)
+class WalletTransactionAdmin(admin.ModelAdmin):
+    pass
