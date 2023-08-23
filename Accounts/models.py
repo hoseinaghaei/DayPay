@@ -8,8 +8,10 @@ from .Enums import EmployeeEnums
 from .managers import UserManager
 from .validators import PhoneNumberValidator
 
+from Bases.base_models import BaseModel
 
-class Users(AbstractBaseUser, PermissionsMixin):
+
+class Users(AbstractBaseUser, BaseModel, PermissionsMixin):
     username_validator = UnicodeUsernameValidator()
     phone_number_validator = PhoneNumberValidator()
 
@@ -48,7 +50,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
         return phone_number
 
 
-class Company(models.Model):
+class Company(BaseModel):
     name = models.CharField(
         max_length=150, unique=True, error_messages={
             "unique": "A user with that username already exists.",
@@ -59,7 +61,7 @@ class Company(models.Model):
     user = models.OneToOneField(Users, on_delete=models.CASCADE)
 
 
-class Employee(models.Model):
+class Employee(BaseModel):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     role = models.IntegerField(choices=EmployeeEnums.Roles.choices, default=EmployeeEnums.Roles.TEAM_MEMBER)
