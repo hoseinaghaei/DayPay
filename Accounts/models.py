@@ -57,6 +57,7 @@ class Company(BaseModel):
         })
     logo = models.ImageField(upload_to='company/', height_field=100, width_field=100, null=True, blank=True)
     max_credit_limit = models.PositiveIntegerField()
+    is_active = models.BooleanField(default=True)
 
     user = models.OneToOneField(Users, on_delete=models.CASCADE)
 
@@ -76,6 +77,7 @@ class Employee(BaseModel):
     sheba_number = models.CharField(max_length=50, null=True, blank=True)
     image = models.ImageField(upload_to='employee/', height_field=100, width_field=100, null=True, blank=True)
     status = models.IntegerField(choices=EmployeeEnums.Status.choices)
+    is_active = models.BooleanField(default=True)
 
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='employees')
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='employees')
