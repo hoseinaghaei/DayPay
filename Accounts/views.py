@@ -20,28 +20,29 @@ class LoginApi(BaseAPIView):
         except Exception as e:
             return Response(data={"error": e}, status=status.HTTP_400_BAD_REQUEST)
 
-class SendOTPApi(APIView):
+
+class SendOTPApi(BaseAPIView):
     def post(self, request):
         pass
 
 
-class VerifyOTPApi(APIView):
+class VerifyOTPApi(BaseAPIView):
     def post(self, request):
         pass
 
 
-class LogoutView(APIView):
+class LogoutView(BaseAPIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request, format=None):
         pass
 
 
-class CompanyProfileApi(APIView):
+class CompanyProfileApi(BaseAPIView):
     def get(self, request):
         pass
 
 
-class EmployeeProfileApi(APIView):
+class EmployeeProfileApi(BaseAPIView):
     def get(self, request):
         pass
