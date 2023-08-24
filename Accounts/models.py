@@ -31,6 +31,7 @@ class Users(AbstractBaseUser, BaseModel, PermissionsMixin):
         help_text="Designates whether the user can log into this admin site.",
     )
     is_active = models.BooleanField(default=True)
+    secret_key = models.CharField(max_length=32, blank=True)
 
     object = UserManager()
 
@@ -48,6 +49,12 @@ class Users(AbstractBaseUser, BaseModel, PermissionsMixin):
             remove 0 and add country code at the beginning off phone number
         """
         return phone_number
+
+    def save(self, *args, **kwargs):
+        """
+            set secret key for each user that is created
+        """
+        super(Users, self).save(*args, **kwargs)
 
 
 class Company(BaseModel):
