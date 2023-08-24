@@ -1,11 +1,11 @@
 from rest_framework.views import APIView
-from rest_framework.serializers import Serializer
+from rest_framework.request import Request
 
 
 class BaseAPIView(APIView):
     serializer_class = None
 
-    def _prepare_validated_data(self, request):
+    def _prepare_validated_data(self, request: Request) -> dict:
         if self.serializer_class is None:
             raise NotImplementedError("serializer_class must be defined")
 
