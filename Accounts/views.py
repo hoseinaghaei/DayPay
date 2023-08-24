@@ -23,8 +23,16 @@ class LoginApi(BaseAPIView):
 
 
 class SendOTPApi(BaseAPIView):
+    authentication_classes = []
+    serializer_class = LoginSerializer
+
     def post(self, request):
-        pass
+        try:
+            validated_data = self._prepare_validated_data(request)
+            response = AccountingService().generate_opt(validated_data)
+            return response
+        except Exception as e:
+            return Response(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class VerifyOTPApi(BaseAPIView):

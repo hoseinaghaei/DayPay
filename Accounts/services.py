@@ -1,16 +1,39 @@
 from django.contrib.auth import authenticate
 from django.apps import apps
+from django.core.cache import cache
 
 from rest_framework.response import Response
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Employee, Company
+from .models import Employee, Company, Users
+from .utils import otp_generator
 
 
 class AccountingService:
-    def generate_opt(self):
-        pass
+    def generate_opt(self, data: dict) -> Response:
+        user = Users.object.get(phone_number=data["phone_number"])
+        if user and user.is_active:
+            otp_code = self._generate_otp_and_set_on_cache(user.id)
+            return Response(
+                {
+                    "otp": otp_code,
+                },
+                status=status.HTTP_200_OK
+            )
+
+        raise serializers.ValidationError("Incorrect credentials.")
+
+    @staticmethod
+    def _generate_otp_and_set_on_cache(user_id: int):
+        otp_code = otp_generator()
+        cache_key = f"user_otp:{user_id}"
+        old_opt = cache.get(cache_key)
+        if old_opt:
+            cache.delete(cache_key)
+
+        cache.set(cache_key, otp_code, timeout=120)
+        return otp_code
 
     def login_otp(self):
         pass
