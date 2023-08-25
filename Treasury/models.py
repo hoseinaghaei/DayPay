@@ -33,7 +33,7 @@ class WalletTransaction(BaseModel):
 
 class Transaction(BaseModel):
     wallet_transaction = models.ForeignKey(WalletTransaction, on_delete=models.DO_NOTHING)
-    type = models.IntegerField(choices=TransactionEnum.Type.choices)
+    type = models.IntegerField(choices=TransactionEnum.Types.choices)
     tracking_code = models.CharField(max_length=20, blank=True)
     is_processed = models.BooleanField(default=False)
     date = models.DateTimeField(auto_now_add=True)
