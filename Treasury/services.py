@@ -57,7 +57,7 @@ class TreasuryService:
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            wallet = Wallet.objects.select_for_update().get(id=employee.wallet_id)
+            wallet = Wallet.objects.select_for_update().get(employee=employee)
 
             self.create_wallet_transaction(
                 wallet,
