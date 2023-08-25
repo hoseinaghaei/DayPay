@@ -116,7 +116,11 @@ class TreasuryService:
             wallet_transaction.status = WalletTransactionEnums.Statuses.PENDING.value
             wallet_transaction.save(update_fields=["status"])
 
-            wallet.objects.update(total_amount=0, credit_amount=0, gift_amount=0)
+            wallet.total_amount = 0
+            wallet.credit_amount = 0
+            wallet.gift_amount = 0
+            wallet.save(update_fields=["total_amount", "credit_amount", "gift_amount"])
+
             return Response(
                 data={
                     'tracking_code': wallet_transaction.id,
