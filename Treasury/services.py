@@ -131,9 +131,6 @@ class TreasuryService:
     def get_wallet(employee_id: int):
         wallet = Wallet.objects.get(employee_id=employee_id, active=True)
 
-        if not wallet.exists():
-            raise Exception("Wallet not Found")
-
         return Response(
             data={
                 'total_credit': wallet.total_amount,
