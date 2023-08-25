@@ -9,12 +9,6 @@ class GiftSerializer(BaseSerializer):
     employee_id = serializers.IntegerField()
     amount = serializers.IntegerField()
 
-    def validate_employee_id(self):
-        pass
-
-    def validate_amount(self):
-        pass
-
 
 class WalletSerializer(BaseSerializer):
     employee_id = serializers.IntegerField()
