@@ -7,6 +7,7 @@ from django.contrib.auth.models import PermissionsMixin
 from .Enums import EmployeeEnums
 from .managers import UserManager
 from .validators import PhoneNumberValidator
+from .utils import generate_user_secret_key
 
 from Bases.base_models import BaseModel
 
@@ -31,9 +32,9 @@ class Users(AbstractBaseUser, BaseModel, PermissionsMixin):
         help_text="Designates whether the user can log into this admin site.",
     )
     is_active = models.BooleanField(default=True)
-    secret_key = models.CharField(max_length=32, blank=True)
+    secret_key = models.CharField(max_length=32, blank=True, null=True, unique=True)
 
-    object = UserManager()
+    objects = UserManager()
 
     EMAIL_FIELD = "email"
     USERNAME_FIELD = "phone_number"
@@ -51,10 +52,17 @@ class Users(AbstractBaseUser, BaseModel, PermissionsMixin):
         return phone_number
 
     def save(self, *args, **kwargs):
-        """
-            set secret key for each user that is created
-        """
+        if not self.pk:
+            self.secret_key = self.get_unique_secret_key()
         super(Users, self).save(*args, **kwargs)
+
+    @staticmethod
+    def get_unique_secret_key():
+        secret_key = generate_user_secret_key()
+        while Users.objects.filter(secret_key=secret_key).exists():
+            secret_key = generate_user_secret_key()
+
+        return secret_key
 
 
 class Company(BaseModel):
