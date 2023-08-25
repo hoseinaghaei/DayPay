@@ -10,7 +10,7 @@ from .models import Employee, Company, Users
 from .utils import *
 
 
-class AccountingService:
+class AuthenticationService:
     def generate_opt(self, data: dict) -> Response:
         user = Users.objects.get(phone_number=data["phone_number"])
         if user and user.is_active:
