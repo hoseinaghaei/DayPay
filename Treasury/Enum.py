@@ -17,6 +17,6 @@ class WalletTransactionEnums:
 
 
 class TransactionEnum:
-    class Type(models.IntegerChoices):
+    class Types(models.IntegerChoices):
         FAST = 1
         REGULAR = 2
