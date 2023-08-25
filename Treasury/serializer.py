@@ -5,7 +5,7 @@ from Bases.base_serializers import BaseSerializer
 from .models import Wallet
 
 
-class AddGiftSerializer(BaseSerializer):
+class GiftSerializer(BaseSerializer):
     employee_id = serializers.IntegerField()
     amount = serializers.IntegerField()
 
