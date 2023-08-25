@@ -72,6 +72,7 @@ class Company(BaseModel):
         })
     logo = models.ImageField(upload_to='company/', height_field=100, width_field=100, null=True, blank=True)
     max_credit_limit = models.PositiveIntegerField()
+    given_credit = models.PositiveIntegerField()
     is_active = models.BooleanField(default=True)
 
     user = models.OneToOneField(Users, on_delete=models.CASCADE)
