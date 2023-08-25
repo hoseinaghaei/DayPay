@@ -1,7 +1,8 @@
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Sum
+from django.db.models.functions import Coalesce
 
 from .models import Gift, Employee, Wallet, WalletTransaction, Company, Transaction
 from .Enum import WalletTransactionEnums
@@ -56,7 +57,7 @@ class TreasuryService:
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            wallet = Wallet.objects.select_for_update().get(id=employee.wallet_id)
+            wallet = Wallet.objects.select_for_update().get(employee=employee)
 
             self.create_wallet_transaction(
                 wallet,
@@ -115,7 +116,11 @@ class TreasuryService:
             wallet_transaction.status = WalletTransactionEnums.Statuses.PENDING.value
             wallet_transaction.save(update_fields=["status"])
 
-            wallet.objects.update(total_amount=0, credit_amount=0, gift_amount=0)
+            wallet.total_amount = 0
+            wallet.credit_amount = 0
+            wallet.gift_amount = 0
+            wallet.save(update_fields=["total_amount", "credit_amount", "gift_amount"])
+
             return Response(
                 data={
                     'tracking_code': wallet_transaction.id,
@@ -129,9 +134,6 @@ class TreasuryService:
     @staticmethod
     def get_wallet(employee_id: int):
         wallet = Wallet.objects.get(employee_id=employee_id, active=True)
-
-        if not wallet.exists():
-            raise Exception("Wallet not Found")
 
         return Response(
             data={
@@ -155,11 +157,11 @@ class TreasuryService:
     def get_taken_credit_in_current_month(employee: Employee):
         first_day_of_month = jalali_first_day_of_month()
         return WalletTransaction.objects.filter(
-            wallet=employee.wallet,
+            wallet=employee.wallet.get(active=True),
             type=WalletTransactionEnums.Types.DEPOSIT,
             source=WalletTransactionEnums.Sources.EMPLOYEE,
             date__gte=first_day_of_month
-        ).aggregate(sum('amount')).get('amount__sum', 0)
+        ).aggregate(total_amount=Coalesce(Sum('amount'), 0)).get("total_amount")
 
     @staticmethod
     def get_company_remaining_credit(company_id: int):
