@@ -13,19 +13,9 @@ from Bases.base_models import BaseModel
 
 
 class Users(AbstractBaseUser, BaseModel, PermissionsMixin):
-    username_validator = UnicodeUsernameValidator()
     phone_number_validator = PhoneNumberValidator()
 
-    username = models.CharField(
-        max_length=150,
-        unique=True,
-        help_text="Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.",
-        validators=[username_validator],
-        error_messages={
-            "unique": "A user with that username already exists.",
-        },
-    )
-    email = models.EmailField(blank=True)
+    email = models.EmailField(blank=True, null=True)
     phone_number = models.CharField(max_length=12, unique=True, validators=[phone_number_validator])
     is_staff = models.BooleanField(
         default=False,
@@ -51,18 +41,12 @@ class Users(AbstractBaseUser, BaseModel, PermissionsMixin):
         """
         return phone_number
 
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            self.secret_key = self.get_unique_secret_key()
-        super(Users, self).save(*args, **kwargs)
-
-    @staticmethod
-    def get_unique_secret_key():
+    def set_unique_secret_key(self):
         secret_key = generate_user_secret_key()
         while Users.objects.filter(secret_key=secret_key).exists():
             secret_key = generate_user_secret_key()
 
-        return secret_key
+        self.secret_key = secret_key
 
 
 class Company(BaseModel):
