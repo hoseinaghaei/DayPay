@@ -4,6 +4,7 @@ import datetime
 
 def generate_user_secret_key():
     user_secret = pyotp.random_base32()
+    return user_secret
 
 
 def otp_generator(user_secret: str):
