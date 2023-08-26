@@ -5,8 +5,9 @@ from rest_framework.response import Response
 from rest_framework import permissions, generics, status
 
 from Bases.base_views import BaseAPIView
-from .serializers import LoginSerializer
+from .serializers import LoginSerializer, EmployeeSerializer
 from .services import AuthenticationService
+from . models import Employee
 
 
 class LoginApi(BaseAPIView):
@@ -60,6 +61,35 @@ class CompanyProfileApi(BaseAPIView):
         pass
 
 
-class EmployeeProfileApi(BaseAPIView):
+class EmployeeAPIs(BaseAPIView):
+    serializer_class = EmployeeSerializer
+
     def get(self, request):
-        pass
+        company_id = request.data.get("company_id")
+        employees = Employee.objects.filter(company_id=company_id)
+        if employees.exists():
+            serializer = self.serializer_class(employees, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response({"error": str(Employee.DoesNotExist)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request):
+        try:
+            employee_id = request.data.pop("employee_id")
+            employee = Employee.objects.get(id=employee_id)
+        except Employee.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.serializer_class(employee, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
