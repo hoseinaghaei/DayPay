@@ -1,7 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.base_user import AbstractBaseUser
-from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.auth.models import PermissionsMixin
 
 from .Enums import EmployeeEnums
@@ -33,6 +32,11 @@ class Users(AbstractBaseUser, BaseModel, PermissionsMixin):
     class Meta:
         verbose_name = 'Users'
         verbose_name_plural = 'Users'
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.set_unique_secret_key()
+        super(Users, self).save(*args, **kwargs)
 
     @classmethod
     def normalize_phone_number(cls, phone_number):
