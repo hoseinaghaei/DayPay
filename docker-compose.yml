@@ -13,7 +13,7 @@ services:
     env_file:
       - .env
   db:
-    image: mysql:5.7
+    image: docker.host:5000/library/mysql:5.7
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: DayPay
@@ -22,11 +22,11 @@ services:
     ports:
       - "3306:3306"
   redis:
-    image: redis:latest
+    image: docker.host:5000/library/redis:latest
     ports:
       - "6379:6379"
   nginx:
-    image: nginx:latest
+    image: docker.host:5000/library/nginx:latest
     ports:
       - "80:80"
     volumes:
