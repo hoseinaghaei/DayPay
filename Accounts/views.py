@@ -65,7 +65,7 @@ class EmployeeAPIs(BaseAPIView):
     serializer_class = EmployeeSerializer
 
     def get(self, request):
-        company_id = request.data.get("company_id")
+        company_id = request.query_params.get("company_id")
         employees = Employee.objects.filter(company_id=company_id)
         if employees.exists():
             serializer = self.serializer_class(employees, many=True)
