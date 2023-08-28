@@ -12,9 +12,9 @@ class Gift(BaseModel):
 
 
 class Wallet(BaseModel):
-    total_amount = models.PositiveIntegerField()
-    gift_amount = models.PositiveIntegerField()
-    credit_amount = models.PositiveIntegerField()
+    total_amount = models.PositiveIntegerField(default=0)
+    gift_amount = models.PositiveIntegerField(default=0)
+    credit_amount = models.PositiveIntegerField(default=0)
     active = models.BooleanField(default=True)
 
     employee = models.ForeignKey(Employee, on_delete=models.DO_NOTHING, related_name='wallet')

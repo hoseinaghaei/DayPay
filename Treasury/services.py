@@ -149,7 +149,7 @@ class TreasuryService:
         day_in_month = jalali_day_in_month()
         day_of_month = jalali_day_of_month()
 
-        max_credit = (day_of_month / day_in_month) * (employee.credit_rate_limit / 100) * employee.salary
+        max_credit = round((day_of_month / day_in_month) * (employee.credit_rate_limit / 100) * employee.salary)
         withdraw_credit_in_month = self.get_taken_credit_in_current_month(employee=employee)
         return max_credit - withdraw_credit_in_month
 

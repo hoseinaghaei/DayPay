@@ -8,6 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Employee, Company, Users
 from .utils import *
+from .send_sms import *
 
 
 class AuthenticationService:
@@ -15,9 +16,10 @@ class AuthenticationService:
         user = Users.objects.get(phone_number=data["phone_number"])
         if user and user.is_active:
             otp_code = self._generate_otp_and_set_on_cache(user)
+            send_login_otp(otp_code, user.phone_number)
             return Response(
                 {
-                    "otp": otp_code,
+                    "message": "success",
                 },
                 status=status.HTTP_200_OK
             )

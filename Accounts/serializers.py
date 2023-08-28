@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from Bases.base_serializers import BaseSerializer
+from Treasury.models import Wallet
 
 from .models import Employee, Users
 
@@ -23,4 +24,5 @@ class EmployeeSerializer(serializers.ModelSerializer):
         phone_number = validated_data.pop('phone_number')
         user, created = Users.objects.get_or_create(phone_number=phone_number)
         employee = Employee.objects.create(user=user, **validated_data)
+        wallet = Wallet.objects.create(employee=employee)
         return employee
