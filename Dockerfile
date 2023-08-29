@@ -1,19 +1,29 @@
-FROM python:3.9-slim
+# pull official base image
+FROM python:3.11.4-slim-buster
 
-ENV PYTHONUNBUFFERED 1
-ENV DJANGO_SETTINGS_MODULE DayPay.settings
-
+# set work directory
 RUN mkdir /app
 WORKDIR /app
 
-RUN pip install gunicorn
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt
+# install system dependencies
+RUN apt-get update
 
-COPY . /app/
+# install dependencies
+RUN pip install --upgrade pip
+COPY ./requirements.txt .
+RUN pip install -r requirements.txt
 
-EXPOSE 8000
+# copy entrypoint.sh
+COPY ./entrypoint.sh .
+RUN sed -i 's/\r$//g' ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
 
-CMD []
-CMD ["gunicorn", "DayPay.wsgi:application", "--bind", "0.0.0.0:8000"]
+# copy project
+COPY . .
+
+# run entrypoint.sh
+ENTRYPOINT ["./entrypoint.sh"]
