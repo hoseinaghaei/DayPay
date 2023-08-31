@@ -2,10 +2,6 @@ from django.db import models
 
 
 class WalletTransactionEnums:
-    class Statuses(models.IntegerChoices):
-        PENDING = 1,
-        DONE = 2,
-        FAILED = 3
 
     class Types(models.IntegerChoices):
         DEPOSIT = 1, 'deposit'
