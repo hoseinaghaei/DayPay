@@ -100,36 +100,38 @@ class TreasuryService:
 
     def withdraw_wallet(self, data: dict):
         employee = Employee.objects.get(id=data['employee_id'])
+        validate_otp(employee.user, data["otp"])
         with transaction.atomic():
             wallet = Wallet.objects.select_for_update().get(employee=employee, active=True)
             balance = wallet.total_amount
 
-            wallet_transaction = self.create_wallet_transaction(
+            self.create_wallet_transaction(
                 wallet,
                 WalletTransactionEnums.Types.WITHDRAW.value,
                 WalletTransactionEnums.Sources.EMPLOYEE.value,
                 balance
             )
 
-            Transaction.objects.create(
-                wallet_transaction=wallet_transaction,
-                type=data['type']
-            )
-
-            wallet_transaction.status = WalletTransactionEnums.Statuses.PENDING.value
-            wallet_transaction.save(update_fields=["status"])
-
             wallet.total_amount = 0
             wallet.credit_amount = 0
             wallet.gift_amount = 0
             wallet.save(update_fields=["total_amount", "credit_amount", "gift_amount"])
 
+            trx = Transaction.objects.get(transfer_id=data["transfer_id"])
+            try:
+                send_trnasacttion_to_jibit()
+            except Exception as e:
+                send_trnasacttion_to_jibit()
+
+            trx.status = TransactionEnum.Status.SENT_TO_BANK.value
+            trx.save(update_fields=["status"])
+
             return Response(
                 data={
-                    'tracking_code': wallet_transaction.id,
-                    'status': WalletTransactionEnums.Statuses.PENDING.name,
                     'amount': balance,
-                    'type': data['type']
+                    'transfer_id': trx.transfer_id,
+                    'type': data['transfer_mode'],
+                    'sheba_number': employee.sheba_number
                 },
                 status=status.HTTP_200_OK
             )
