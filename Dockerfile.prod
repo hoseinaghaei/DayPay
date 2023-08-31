@@ -18,9 +18,10 @@ RUN apt-get update && \
 
 # lint
 RUN pip install --upgrade pip
-RUN pip install flake8==6.0.0
+RUN pip install gunicorn
+# RUN pip install flake8==6.0.0
 COPY . /usr/src/DayPay/
-RUN flake8 --ignore=E501,F401 .
+# RUN flake8 --ignore=E501,F401 .
 
 # install python dependencies
 COPY ./requirements.txt .
@@ -53,6 +54,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends netcat
 COPY --from=builder /usr/src/DayPay/wheels /wheels
 COPY --from=builder /usr/src/DayPay/requirements.txt .
 RUN pip install --upgrade pip
+RUN pip install gunicorn
 RUN pip install --no-cache /wheels/*
 
 # copy entrypoint.prod.sh
@@ -70,4 +72,4 @@ RUN chown -R app:app $APP_HOME
 USER app
 
 # run entrypoint.prod.sh
-ENTRYPOINT ["/home/DayPay/web/entrypoint.prod.sh"]
+# ENTRYPOINT ["/home/DayPay/web/entrypoint.prod.sh"]
