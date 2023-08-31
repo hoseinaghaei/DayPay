@@ -25,4 +25,8 @@ class CompanyAdmin(admin.ModelAdmin):
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['id', 'first_name', 'last_name', 'role', 'get_user', 'is_active']
+
+    @admin.display(description='phone number')
+    def get_user(self, obj: Employee):
+        return obj.user.phone_number
