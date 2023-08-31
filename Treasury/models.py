@@ -23,8 +23,6 @@ class Wallet(BaseModel):
 class WalletTransaction(BaseModel):
     type = models.IntegerField(choices=WalletTransactionEnums.Types.choices)
     source = models.IntegerField(choices=WalletTransactionEnums.Sources.choices)
-    status = models.IntegerField(choices=WalletTransactionEnums.Statuses.choices,
-                                 default=WalletTransactionEnums.Statuses.DONE)
     amount = models.PositiveIntegerField()
     date = models.DateTimeField(auto_now_add=True)
 
