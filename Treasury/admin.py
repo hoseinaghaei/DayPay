@@ -18,7 +18,11 @@ class GiftAdmin(admin.ModelAdmin):
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['get_employee', 'total_amount', 'credit_amount', 'gift_amount', 'active']
+
+    @admin.display(description='Employee')
+    def get_employee(self, obj: Wallet):
+        return obj.employee
 
 
 @admin.register(WalletTransaction)
