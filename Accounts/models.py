@@ -6,7 +6,7 @@ from django.contrib.auth.models import PermissionsMixin
 from .Enums import EmployeeEnums
 from .managers import UserManager
 from .validators import PhoneNumberValidator
-from .utils import generate_user_secret_key
+from Utils.otp_utils import generate_user_secret_key
 
 from Bases.base_models import BaseModel
 
