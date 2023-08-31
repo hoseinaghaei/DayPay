@@ -19,7 +19,8 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["name", "max_credit_limit", "given_credit",
+                    "regular_commission_rate", "fast_commission_rate", "is_active"]
 
 
 @admin.register(Employee)
