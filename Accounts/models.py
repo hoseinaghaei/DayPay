@@ -61,9 +61,14 @@ class Company(BaseModel):
     logo = models.ImageField(upload_to='company/', height_field=100, width_field=100, null=True, blank=True)
     max_credit_limit = models.PositiveIntegerField()
     given_credit = models.PositiveIntegerField()
+    regular_commission_rate = models.FloatField(default=1.9, validators=[MinValueValidator(1), MaxValueValidator(100)])
+    fast_commission_rate = models.FloatField(default=2.9, validators=[MinValueValidator(1), MaxValueValidator(100)])
     is_active = models.BooleanField(default=True)
 
     user = models.OneToOneField(Users, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
 
 
 class Employee(BaseModel):
