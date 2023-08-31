@@ -176,3 +176,52 @@ class TreasuryService:
     @staticmethod
     def has_company_enough_credit(company_id: int, credit: int):
         return TreasuryService.get_company_remaining_credit(company_id) >= credit
+
+    def get_withdraw_detail(self, data: dict):
+        wallet = Wallet.objects.get(employee_id=data["employee_id"], active=True)
+        employee = Employee.objects.get(id=data["employee_id"])
+        commission = self.get_commission(data["transfer_mode"], employee.company, wallet.total_amount)
+
+        output = {
+            "amount": wallet.total_amount,
+            "commission": commission,
+            "sheba_number": wallet.employee.sheba_number
+        }
+
+        return Response(data=output, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def get_commission(transaction_type, company: Company, amount) -> int:
+        if transaction_type == TransactionEnum.Types.REGULAR.value:
+            commission = amount * company.regular_commission_rate / 100
+        elif transaction_type == TransactionEnum.Types.FAST.value:
+            commission = amount * company.fast_commission_rate / 100
+        else:
+            raise Exception('Illegal transaction type')
+
+        return round(commission)
+
+    def generate_withdraw_otp(self, data: dict):
+        employee = Employee.objects.get(id=data['employee_id'], is_active=True)
+        wallet = employee.wallet.get(active=True)
+        otp_code = generate_otp_and_set_on_cache(employee.user, 6000)
+
+        trx = Transaction.objects.create(
+            transfer_mode=data['transfer_mode'],
+            destination=employee.sheba_number,
+            destination_first_name=employee.first_name,
+            destination_last_name=employee.last_name,
+            amount=wallet.total_amount,
+            commission=self.get_commission(data["transfer_mode"], employee.company, wallet.total_amount)
+        )
+
+        send_withdraw_otp(otp_code, employee.user.phone_number)
+
+        return Response(
+            {
+                "transfer_id": trx.transfer_id,
+                "otp": otp_code,
+                "message": "success",
+            },
+            status=status.HTTP_200_OK
+        )
