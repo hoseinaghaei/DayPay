@@ -91,3 +91,5 @@ class Employee(BaseModel):
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='employees')
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='employees')
 
+    def __str__(self):
+        return self.first_name + ' ' + self.last_name
