@@ -27,4 +27,13 @@ class WalletAdmin(admin.ModelAdmin):
 
 @admin.register(WalletTransaction)
 class WalletTransactionAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['get_employee', 'type', 'source', 'amount', 'date']
+
+    @admin.display(description='Employee')
+    def get_employee(self, obj: WalletTransaction):
+        return obj.wallet.employee
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = [f.name for f in Transaction._meta.get_fields()]
