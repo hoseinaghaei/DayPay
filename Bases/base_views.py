@@ -9,6 +9,11 @@ class BaseAPIView(APIView):
         if self.serializer_class is None:
             raise NotImplementedError("serializer_class must be defined")
 
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer = self.serializer_class(data=request.data)
+            serializer.is_valid(raise_exception=True)
+        except Exception as e:
+            serializer = self.serializer_class(data=request.query_params)
+            serializer.is_valid(raise_exception=True)
+
         return serializer.validated_data
