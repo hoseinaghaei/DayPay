@@ -12,4 +12,6 @@ class GiftSerializer(BaseSerializer):
 
 class WalletSerializer(BaseSerializer):
     employee_id = serializers.IntegerField()
-    type = serializers.ChoiceField(choices=TransactionEnum.Types.choices, required=False)
+    transfer_mode = serializers.ChoiceField(choices=TransactionEnum.Types.choices, required=False)
+    otp = serializers.CharField(max_length=6, required=False)
+    transfer_id = serializers.CharField(max_length=9, required=False)

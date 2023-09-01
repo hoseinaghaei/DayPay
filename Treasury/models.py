@@ -23,8 +23,6 @@ class Wallet(BaseModel):
 class WalletTransaction(BaseModel):
     type = models.IntegerField(choices=WalletTransactionEnums.Types.choices)
     source = models.IntegerField(choices=WalletTransactionEnums.Sources.choices)
-    status = models.IntegerField(choices=WalletTransactionEnums.Statuses.choices,
-                                 default=WalletTransactionEnums.Statuses.DONE)
     amount = models.PositiveIntegerField()
     date = models.DateTimeField(auto_now_add=True)
 
@@ -32,8 +30,31 @@ class WalletTransaction(BaseModel):
 
 
 class Transaction(BaseModel):
-    wallet_transaction = models.ForeignKey(WalletTransaction, on_delete=models.DO_NOTHING)
-    type = models.IntegerField(choices=TransactionEnum.Types.choices)
-    tracking_code = models.CharField(max_length=20, blank=True)
-    is_processed = models.BooleanField(default=False)
+    transfer_mode = models.IntegerField(choices=TransactionEnum.Types.choices)
+    transfer_id = models.CharField(max_length=20, blank=True)
+    destination = models.CharField(max_length=100)
+    destination_first_name = models.CharField(max_length=100)
+    destination_last_name = models.CharField(max_length=100)
+    amount = models.PositiveBigIntegerField()
+    commission = models.PositiveBigIntegerField()
+    status = models.IntegerField(choices=TransactionEnum.Status.choices, default=TransactionEnum.Status.PENDING.value)
     date = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.set_unique_transfer_id()
+
+        super(Transaction, self).save(*args, **kwargs)
+
+    def set_unique_transfer_id(self):
+        transfer_id = self.generate_transfer_id()
+        while Transaction.objects.filter(transfer_id=transfer_id).exists():
+            transfer_id = self.generate_transfer_id()
+
+        self.transfer_id = transfer_id
+
+    @staticmethod
+    def generate_transfer_id():
+        import random
+        chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
+        return str("".join(random.choice(chars) for _ in range(9)))

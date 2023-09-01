@@ -24,6 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/accounts/', include('Accounts.urls')),
     path('api/treasury/', include('Treasury.urls')),
+    path('api/reports/', include('Reports.urls')),
 ]
 
 if bool(settings.DEBUG):

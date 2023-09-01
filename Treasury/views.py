@@ -31,6 +31,30 @@ class DepositWalletApi(BaseAPIView):
             return Response(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class GetWithdrawDetails(BaseAPIView):
+    serializer_class = WalletSerializer
+
+    def post(self, request):
+        try:
+            validated_data = self._prepare_validated_data(request)
+            response = TreasuryService().get_withdraw_detail(validated_data)
+            return response
+        except Exception as e:
+            return Response(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GenerateWithdrawOTP(BaseAPIView):
+    serializer_class = WalletSerializer
+
+    def post(self, request):
+        try:
+            validated_data = self._prepare_validated_data(request)
+            response = TreasuryService().generate_withdraw_otp(validated_data)
+            return response
+        except Exception as e:
+            return Response(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class WithdrawWalletAPI(BaseAPIView):
     serializer_class = WalletSerializer
 

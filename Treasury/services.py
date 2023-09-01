@@ -5,8 +5,11 @@ from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 
 from .models import Gift, Employee, Wallet, WalletTransaction, Company, Transaction
-from .Enum import WalletTransactionEnums
-from .utils import *
+from .Enum import WalletTransactionEnums, TransactionEnum
+from Utils.date_time_utils import *
+from Utils.otp_utils import *
+from Utils.sms_utils import *
+from Utils.jibit_utils import send_trnasacttion_to_jibit
 
 
 class TreasuryService:
@@ -97,36 +100,38 @@ class TreasuryService:
 
     def withdraw_wallet(self, data: dict):
         employee = Employee.objects.get(id=data['employee_id'])
+        validate_otp(employee.user, data["otp"])
         with transaction.atomic():
             wallet = Wallet.objects.select_for_update().get(employee=employee, active=True)
             balance = wallet.total_amount
 
-            wallet_transaction = self.create_wallet_transaction(
+            self.create_wallet_transaction(
                 wallet,
                 WalletTransactionEnums.Types.WITHDRAW.value,
                 WalletTransactionEnums.Sources.EMPLOYEE.value,
                 balance
             )
 
-            Transaction.objects.create(
-                wallet_transaction=wallet_transaction,
-                type=data['type']
-            )
-
-            wallet_transaction.status = WalletTransactionEnums.Statuses.PENDING.value
-            wallet_transaction.save(update_fields=["status"])
-
             wallet.total_amount = 0
             wallet.credit_amount = 0
             wallet.gift_amount = 0
             wallet.save(update_fields=["total_amount", "credit_amount", "gift_amount"])
 
+            trx = Transaction.objects.get(transfer_id=data["transfer_id"])
+            try:
+                send_trnasacttion_to_jibit()
+            except Exception as e:
+                send_trnasacttion_to_jibit()
+
+            trx.status = TransactionEnum.Status.SENT_TO_BANK.value
+            trx.save(update_fields=["status"])
+
             return Response(
                 data={
-                    'tracking_code': wallet_transaction.id,
-                    'status': WalletTransactionEnums.Statuses.PENDING.name,
                     'amount': balance,
-                    'type': data['type']
+                    'transfer_id': trx.transfer_id,
+                    'type': data['transfer_mode'],
+                    'sheba_number': employee.sheba_number
                 },
                 status=status.HTTP_200_OK
             )
@@ -171,3 +176,52 @@ class TreasuryService:
     @staticmethod
     def has_company_enough_credit(company_id: int, credit: int):
         return TreasuryService.get_company_remaining_credit(company_id) >= credit
+
+    def get_withdraw_detail(self, data: dict):
+        wallet = Wallet.objects.get(employee_id=data["employee_id"], active=True)
+        employee = Employee.objects.get(id=data["employee_id"])
+        commission = self.get_commission(data["transfer_mode"], employee.company, wallet.total_amount)
+
+        output = {
+            "amount": wallet.total_amount,
+            "commission": commission,
+            "sheba_number": wallet.employee.sheba_number
+        }
+
+        return Response(data=output, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def get_commission(transaction_type, company: Company, amount) -> int:
+        if transaction_type == TransactionEnum.Types.REGULAR.value:
+            commission = amount * company.regular_commission_rate / 100
+        elif transaction_type == TransactionEnum.Types.FAST.value:
+            commission = amount * company.fast_commission_rate / 100
+        else:
+            raise Exception('Illegal transaction type')
+
+        return round(commission)
+
+    def generate_withdraw_otp(self, data: dict):
+        employee = Employee.objects.get(id=data['employee_id'], is_active=True)
+        wallet = employee.wallet.get(active=True)
+        otp_code = generate_otp_and_set_on_cache(employee.user, 6000)
+
+        trx = Transaction.objects.create(
+            transfer_mode=data['transfer_mode'],
+            destination=employee.sheba_number,
+            destination_first_name=employee.first_name,
+            destination_last_name=employee.last_name,
+            amount=wallet.total_amount,
+            commission=self.get_commission(data["transfer_mode"], employee.company, wallet.total_amount)
+        )
+
+        send_withdraw_otp(otp_code, employee.user.phone_number)
+
+        return Response(
+            {
+                "transfer_id": trx.transfer_id,
+                "otp": otp_code,
+                "message": "success",
+            },
+            status=status.HTTP_200_OK
+        )

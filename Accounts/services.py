@@ -6,16 +6,16 @@ from rest_framework.response import Response
 from rest_framework import serializers, status
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Employee, Company, Users
-from .utils import *
-from .send_sms import *
+from .models import Users
+from Utils.otp_utils import *
+from Utils.sms_utils import *
 
 
 class AuthenticationService:
     def generate_opt(self, data: dict) -> Response:
         user = Users.objects.get(phone_number=data["phone_number"])
         if user and user.is_active:
-            otp_code = self._generate_otp_and_set_on_cache(user)
+            otp_code = generate_otp_and_set_on_cache(user)
             send_login_otp(otp_code, user.phone_number)
             return Response(
                 {
@@ -26,28 +26,10 @@ class AuthenticationService:
 
         raise serializers.ValidationError("Incorrect credentials.")
 
-    @staticmethod
-    def _generate_otp_and_set_on_cache(user: Users):
-        otp_code, now = otp_generator(user.secret_key)
-        old_opt = cache.get(get_otp_cache_key(user.id))
-        if old_opt:
-            cache.delete(get_otp_cache_key(user.id))
-
-        cache.set(get_otp_cache_key(user.id), [otp_code, now], timeout=120)
-        return otp_code
-
     def login_otp(self, data: dict, account_class: str) -> Response:
         user = Users.objects.get(phone_number=data["phone_number"])
         if user and user.is_active:
-            stored_otp_data = cache.get(get_otp_cache_key(user.id))
-
-            if not stored_otp_data:
-                raise serializers.ValidationError("OTP expired or not generated.")
-
-            if not validate_otp(user.secret_key, data["otp"], stored_otp_data[1]):
-                raise serializers.ValidationError("OTP expired or not generated.")
-
-            cache.delete(get_otp_cache_key(user.id))
+            validate_otp(user, data["otp"])
             return self._create_auth_token(account_class, user)
 
         raise serializers.ValidationError("Incorrect credentials.")
