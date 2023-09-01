@@ -9,7 +9,7 @@ from .Enum import WalletTransactionEnums, TransactionEnum
 from Utils.date_time_utils import *
 from Utils.otp_utils import *
 from Utils.sms_utils import *
-from Utils.jibit_utils import send_trnasacttion_to_jibit
+from Utils.jibit_utils import send_transaction_to_jibit
 
 
 class TreasuryService:
@@ -119,9 +119,9 @@ class TreasuryService:
 
             trx = Transaction.objects.get(transfer_id=data["transfer_id"])
             try:
-                send_trnasacttion_to_jibit()
+                send_transaction_to_jibit(trx)
             except Exception as e:
-                send_trnasacttion_to_jibit()
+                send_transaction_to_jibit(trx)
 
             trx.status = TransactionEnum.Status.SENT_TO_BANK.value
             trx.save(update_fields=["status"])
