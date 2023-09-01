@@ -142,7 +142,7 @@ class TreasuryService:
 
         return Response(
             data={
-                'total_credit': wallet.total_amount,
+                'total_amount': wallet.total_amount,
                 'credit_amount': wallet.credit_amount,
                 'gift_amount': wallet.gift_amount
             },
