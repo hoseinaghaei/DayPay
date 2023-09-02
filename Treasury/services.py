@@ -126,8 +126,8 @@ class TreasuryService:
                 balance
             )
 
-            wallet_trx.transfer_id = trx.id
-            wallet_trx.save(update_fields='transfer_id')
+            wallet_trx.transfer_id = trx
+            wallet_trx.save()
 
             return Response(
                 data={
@@ -224,6 +224,7 @@ class TreasuryService:
             {
                 "transfer_id": trx.transfer_id,
                 "message": "success",
+                'otp': otp_code
             },
             status=status.HTTP_200_OK
         )
