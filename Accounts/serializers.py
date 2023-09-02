@@ -13,16 +13,23 @@ class LoginSerializer(BaseSerializer):
     otp = serializers.CharField(max_length=6, required=False)
 
 
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Users
+        fields = ['phone_number', 'email']
+
+
 class EmployeeSerializer(serializers.ModelSerializer):
-    phone_number = serializers.CharField(max_length=12, required=False)
+    user = UserSerializer(many=False)
 
     class Meta:
         model = Employee
-        exclude = ['is_active', 'user']
+        exclude = ['is_active']
 
     def create(self, validated_data):
-        phone_number = validated_data.pop('phone_number')
-        user, created = Users.objects.get_or_create(phone_number=phone_number)
+        user_data = validated_data.pop('user')
+        user, created = Users.objects.get_or_create(phone_number=user_data.get('phone_number'))
         employee = Employee.objects.create(user=user, **validated_data)
-        wallet = Wallet.objects.create(employee=employee)
+        Wallet.objects.create(employee=employee)
         return employee
