@@ -20,3 +20,9 @@ def jalali_day_in_month() -> int:
     year = jalali_date.year
     month = jalali_date.month
     return JalaliDate.days_in_month(month, year)
+
+
+def jalali_get_month() -> int:
+    today = JalaliDate.today()
+    month = JalaliDate(today.year, today.month, today.day).to_gregorian().month
+    return month

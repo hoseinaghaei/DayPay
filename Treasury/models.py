@@ -20,15 +20,6 @@ class Wallet(BaseModel):
     employee = models.ForeignKey(Employee, on_delete=models.DO_NOTHING, related_name='wallet')
 
 
-class WalletTransaction(BaseModel):
-    type = models.IntegerField(choices=WalletTransactionEnums.Types.choices)
-    source = models.IntegerField(choices=WalletTransactionEnums.Sources.choices)
-    amount = models.PositiveIntegerField()
-    date = models.DateTimeField(auto_now_add=True)
-
-    wallet = models.ForeignKey(Wallet, on_delete=models.DO_NOTHING, related_name='transactions')
-
-
 class Transaction(BaseModel):
     transfer_mode = models.IntegerField(choices=TransactionEnum.Types.choices)
     transfer_id = models.CharField(max_length=20, blank=True)
@@ -58,3 +49,13 @@ class Transaction(BaseModel):
         import random
         chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
         return str("".join(random.choice(chars) for _ in range(9)))
+
+
+class WalletTransaction(BaseModel):
+    type = models.IntegerField(choices=WalletTransactionEnums.Types.choices)
+    source = models.IntegerField(choices=WalletTransactionEnums.Sources.choices)
+    amount = models.PositiveIntegerField()
+    date = models.DateTimeField(auto_now_add=True)
+
+    transfer_id = models.OneToOneField(Transaction, on_delete=models.DO_NOTHING, null=True, blank=True)
+    wallet = models.ForeignKey(Wallet, on_delete=models.DO_NOTHING, related_name='transactions')
