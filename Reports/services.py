@@ -19,11 +19,26 @@ class ReportsService:
             'credits_details': {
                 'current_month': self.get_monthly_transactions(company_id, jalali_get_month()),
                 'previous_month': self.get_monthly_transactions(company_id, jalali_get_month() - 1),
+                'last_6_months': self.get_last_6_months_transactions(company_id),
+                'given_gifts': self.get_given_gifts_in_last_6_months(company_id)
             },
-            'employees_details': self.get_employees_count(company_id),
+            'employees_details': {
+                'counts': self.get_employees_counts_by_status(company_id),
+                'genders': self.get_employees_counts_by_gender(company_id)
+            },
+            'upcoming_events': {
+                'birth_dates': self.get_employee_birth_dates(company_id)
+            }
         }
 
         return Response(data, status=status.HTTP_200_OK)
+
+    def get_last_6_months_transactions(self, company_id: int):
+        data = {}
+        month = jalali_get_month()
+        for i in range(6):
+            data[month - i] = self.get_monthly_transactions(company_id, month - i)
+        return data
 
     @staticmethod
     def get_monthly_transactions(company_id: int, month: int):
@@ -34,7 +49,24 @@ class ReportsService:
         ).aggregate(total_amount=Coalesce(Sum('amount'), 0), count=Count('id'))
 
     @staticmethod
-    def get_employees_count(company_id: int) -> dict:
+    def get_given_gifts_monthly(company_id: int, month: int):
+        return WalletTransaction.objects.filter(
+            wallet__employee__company_id=company_id,
+            type=WalletTransactionEnums.Types.DEPOSIT,
+            source=WalletTransactionEnums.Sources.COMPANY,
+            date__month=month
+        ).aggregate(total_amount=Coalesce(Sum('amount'), 0), count=Count('id'))
+
+    def get_given_gifts_in_last_6_months(self, company_id: int) -> dict:
+        data = {}
+        month = jalali_get_month()
+        for i in range(6):
+            data[month - i] = self.get_given_gifts_monthly(company_id, month - i)
+
+        return data
+
+    @staticmethod
+    def get_employees_counts_by_status(company_id: int) -> dict:
         employee_counts = (
             Employee.objects.filter(company_id=company_id).values('status').annotate(status_count=Count('status')))
 
@@ -43,6 +75,29 @@ class ReportsService:
             status_counts[EmployeeEnums.Status(item['status']).label] = item['status_count']
 
         return status_counts
+
+    @staticmethod
+    def get_employees_counts_by_gender(company_id: int) -> dict:
+        employee_counts = (
+            Employee.objects.filter(company_id=company_id).values('gender').annotate(gender_count=Count('gender')))
+
+        gender_counts = {}
+        for item in employee_counts:
+            gender_counts[EmployeeEnums.Genders(item['gender']).label] = item['gender_count']
+
+        return gender_counts
+
+    @staticmethod
+    def get_employee_birth_dates(company_id: int) -> dict:
+        employees = Employee.objects.filter(company_id=company_id, birth_date__month__gte=jalali_get_month(),
+                                            birth_date__month__lt=jalali_get_month() + 2
+                                            ).values('id', 'first_name', 'last_name', 'birth_date')
+        data = {}
+
+        for employee in employees:
+            data[employee.pop('id')] = employee
+
+        return data
 
     def get_employee_details(self, employee_id) -> Response:
         employee = Employee.objects.get(id=employee_id)
