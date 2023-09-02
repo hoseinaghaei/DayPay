@@ -62,7 +62,8 @@ class ReportsService:
             wallet__employee_id=employee_id,
             type=WalletTransactionEnums.Types.WITHDRAW.value,
             date__gte=first_day_of_month
-        ).values('transfer_mode').annotate(transfer_mode_count=Count('transfer_mode'))
+        ).values('transfer_id__transfer_mode'
+                 ).annotate(count=Count('transfer_id__transfer_mode'))
 
         data = {
             'total_count': 0,
@@ -71,7 +72,7 @@ class ReportsService:
         }
 
         for transaction in trxs:
-            data['total_count'] += transaction['transfer_mode_count']
-            data[TransactionEnum.Types(transaction['transfer_mode']).label] += transaction['transfer_mode_count']
+            data['total_count'] += transaction['count']
+            data[TransactionEnum.Types(transaction['transfer_id__transfer_mode']).label] += transaction['count']
 
         return data
