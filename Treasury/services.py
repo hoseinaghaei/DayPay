@@ -220,7 +220,6 @@ class TreasuryService:
         return Response(
             {
                 "transfer_id": trx.transfer_id,
-                "otp": otp_code,
                 "message": "success",
             },
             status=status.HTTP_200_OK
