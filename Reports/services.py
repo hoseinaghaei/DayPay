@@ -19,11 +19,19 @@ class ReportsService:
             'credits_details': {
                 'current_month': self.get_monthly_transactions(company_id, jalali_get_month()),
                 'previous_month': self.get_monthly_transactions(company_id, jalali_get_month() - 1),
+                'last_6_months': self.get_last_6_months_transactions(company_id)
             },
             'employees_details': self.get_employees_count(company_id),
         }
 
         return Response(data, status=status.HTTP_200_OK)
+
+    def get_last_6_months_transactions(self, company_id: int):
+        data = {}
+        month = jalali_get_month()
+        for i in range(6):
+            data[month - i] = self.get_monthly_transactions(company_id, month - i)
+        return data
 
     @staticmethod
     def get_monthly_transactions(company_id: int, month: int):
