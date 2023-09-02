@@ -105,26 +105,29 @@ class TreasuryService:
             wallet = Wallet.objects.select_for_update().get(employee=employee, active=True)
             balance = wallet.total_amount
 
-            self.create_wallet_transaction(
-                wallet,
-                WalletTransactionEnums.Types.WITHDRAW.value,
-                WalletTransactionEnums.Sources.EMPLOYEE.value,
-                balance
-            )
-
             wallet.total_amount = 0
             wallet.credit_amount = 0
             wallet.gift_amount = 0
             wallet.save(update_fields=["total_amount", "credit_amount", "gift_amount"])
 
             trx = Transaction.objects.get(transfer_id=data["transfer_id"])
-            try:
-                send_transaction_to_jibit(trx)
-            except Exception as e:
-                send_transaction_to_jibit(trx)
+            # try:
+            #     send_transaction_to_jibit(trx)
+            # except Exception as e:
+            #     send_transaction_to_jibit(trx)
 
             trx.status = TransactionEnum.Status.SENT_TO_BANK.value
             trx.save(update_fields=["status"])
+
+            wallet_trx = self.create_wallet_transaction(
+                wallet,
+                WalletTransactionEnums.Types.WITHDRAW.value,
+                WalletTransactionEnums.Sources.EMPLOYEE.value,
+                balance
+            )
+
+            wallet_trx.transfer_id = trx.id
+            wallet_trx.save(update_fields='transfer_id')
 
             return Response(
                 data={
