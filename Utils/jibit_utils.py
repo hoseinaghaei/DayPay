@@ -42,17 +42,27 @@ def get_access_token():
     return access_token
 
 
+def get_transfer_mode(transaction: Treasury.models.Transaction):
+    transfer_modes = {
+        1: 'NORMAL',
+        2: 'ACH'
+    }
+
+    return transfer_modes[transaction.transfer_mode]
+
+
 def send_transaction_to_jibit(transaction: Treasury.models.Transaction):
     url = get_url("transfer")
+
     payload = {
         "batchID": str(transaction.id),
         "submissionMode": "TRANSFER",
         "transfers": [
             {
                 "transferID": transaction.transfer_id,
-                "transferMode": transaction.transfer_mode,
+                "transferMode": get_transfer_mode(transaction),
                 "destination": transaction.destination,
-                "amount": transaction.amount,
+                "amount": transaction.amount + transaction.commission,
                 "currency": "RIALS",
                 "description": "daypay withdraw from wallet"
             }
